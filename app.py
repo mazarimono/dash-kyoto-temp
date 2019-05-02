@@ -2,14 +2,10 @@ import dash
 import dash_core_components as dcc  
 import dash_html_components as html 
 import pandas as pd  
-import plotly.graph_objs as go 
-import os 
 
 df = pd.read_csv('kyoto-temp-winter.csv', index_col=0)
 
 app = dash.Dash(__name__)
-
-server = app.server 
 
 app.layout = html.Div([
     html.H2(['1880年からの京都の12−3月の気温'], style={'textAlign': 'center'}),
@@ -18,26 +14,44 @@ app.layout = html.Div([
             figure = {
                 'data': [
                     {
-                        'x': df[df['year'] == y]['month'],
-                        'y': df[df['year'] == y]['temp'],
+                        'x': df[df['year'] == select_year]['month'],
+                        'y': df[df['year'] == select_year]['temp'],
                         'type': 'lines',
-                        'line': {'color': 'blue' if y == 2018 else 'grey',
-                                'width': 6 if y == 2018 else 1},
-                        'name': y,
-                    } for y in df['year'].unique()
+                        'line': {'color': 'red' if select_year == 2018 else 'grey',
+                                'width': 6 if select_year == 2018 else 1},
+                        'name': select_year,    
+                    } for select_year in df['year'].unique()
                 ],
                 'layout': {
                     'height': 900,
-                    'color': 'grey',
                     'hovermode': 'closest',
-                    'yaxis':{'title': '気温'},
+                    'title': {'text': '線グラフ（2018年（赤色））', 'font':{'size': 25}},
+                    'yaxis':{'title': '平均気温（度）'},
                     'xaxis':{'title': '月'}
                 }
             }
         )
-    ], style={'display': 'inline-block', 'width': '47%', 'height': 900}),
+    ], style={'display': 'inline-block', 'width': '40%'}),
 
     html.Div([
+        dcc.Graph(id='kyoto-winter-boxplot',
+        figure = {
+            'data':[
+                {
+                    'y':df[df['year'] == select_year]['temp'],
+                    'name': select_year,
+                    'type': 'box',
+                    'showlegend':False,
+                } for select_year in df['year'].unique()
+            ],
+            'layout':{
+                'height': 550,
+                'title':{'text': 'ボックスプロット','font':{'size': 25}},
+                'yaxis':{'title': '平均気温（度）'},
+                'xaxis':{'title': '年度'}
+            }
+        }
+        ),
         dcc.Graph(id='kyoto-winter-heatmap',
         figure = {
             'data': [{
@@ -48,14 +62,15 @@ app.layout = html.Div([
             }
             ],
             'layout':{
-                'height': 900,
+                'height': 350,
                 'hovermode': 'closest',
-                'yaxis': {'title': '年'},
-                'xaxis':{'title': '月'}
+                'yaxis': {'title': '年度'},
+                'xaxis':{'title': '月'},
+                'title': {'text': 'ヒートマップ', 'font':{'size': 25}}
             }
         }
-        )
-    ], style={'display': 'inline-block', 'width': '47%', 'height': 900}),
+        ),
+    ], style={'display': 'inline-block', 'width': '60%'}),
 ])
 
 if __name__=='__main__':
